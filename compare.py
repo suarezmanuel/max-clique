@@ -25,7 +25,7 @@ def color_gradient(percentage: float) -> str:
     green = int(percentage * 255)
     return f"\033[38;2;{red};{green};0m"
 
-DEFAULT_RUN_COUNT = 100
+DEFAULT_RUN_COUNT = 1000
 TEST_SERVER = "planet.cs.biu.ac.il"
 
 RUN_COUNT = int(sys.argv[1]) if len(sys.argv) == 2 else DEFAULT_RUN_COUNT
@@ -102,7 +102,7 @@ def main():
     ERROR = None
     sys.stdout.buffer.write("Compiling...".encode())
     try:
-        subprocess.check_call("rm -f clique ; gcc -O0 -o clique main.c max-clique.c", shell=True)
+        subprocess.check_call("rm -f clique ; gcc -O0 -o clique main.c max-clique-alt.c", shell=True)
         print_color(" Success", COLOR_GREEN)
     except:
         print_color(" Failed", COLOR_RED)
