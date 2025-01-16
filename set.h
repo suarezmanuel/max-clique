@@ -6,7 +6,7 @@
 #define N_MAX 128
 #define ULL_SIZE 64
 #define N 20
-#define I 10
+#define I 1
 
 typedef struct set {
     // a[0] is lower, a[1] is higher
