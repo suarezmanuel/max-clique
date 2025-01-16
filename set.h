@@ -6,11 +6,15 @@
 #define N_MAX 128
 #define ULL_SIZE 64
 #define N 20
+#define I 10
 
 typedef struct set {
-    // 16 bits
+    // a[0] is lower, a[1] is higher
     ull a[2];
 } set;
+
+typedef void (*algo)(uchar*, int, set, set, set);
+typedef void (*stupid)(uchar, int, int*, int, int, int, int *, int *);
 
 set setUnion(set A, set B);
 

@@ -2,7 +2,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <time.h>
+
 #include "set.h"
+
+void generateCombinations(uchar* graph, int n, int *clique, int k, int start, int currentSize, int *maxSize, int *maxClique);
 
 // assume graph has no self loops
 
@@ -68,8 +72,7 @@ int findPivot(uchar* graph, int n) {
 set getNeighbors(uchar* graph, int n, int p) {
     set ans = {0, 0};
     for (int i=0; i < n; i++) {
-        // graph[i*n+p] is either 1 or 0
-        ans.a[i<ULL_SIZE] = ans.a[i<ULL_SIZE] | (graph[i*n+p] << i);
+        if (graph[i*n+p]) ans = setBit(ans, i);
     }
     return ans;
 }
@@ -79,12 +82,8 @@ set ans = {0,0};
 void findMaxClique(uchar* graph, int n, set P, set R, set X) {
     if (isEmpty(X) && isEmpty(P)) { ans = compareSets(ans, R); return; }
 
-    int p = findPivot(graph, n);
-    set np = getNeighbors(graph, n, p);
-
     for (int i=0; i < n; i++) {
-        // nodes that arent p's neighbors, no loops in graph
-        if (getBit(np, i)) continue;
+        if (!getBit(P, i)) continue;
         set ni = getNeighbors(graph, n, i);
         findMaxClique(graph, n, setIntersection(P, ni), setBit(R, i), setIntersection(X, ni));
         P = unsetBit(P, i);
@@ -92,16 +91,58 @@ void findMaxClique(uchar* graph, int n, set P, set R, set X) {
     }
 }
 
+void benchmark(uchar* graph, algo f) {
+    set P = {0, 0};
+    for (int i=0; i < N; i++) P = setBit(P, i);
+    set X = {0, 0};
+    set R = {0, 0};
+
+    double sum = 0;
+
+    for (int i=0; i < I; i++) {
+        clock_t start = clock();
+        f(graph, N, P, X, R);
+        sum += (double) (clock() - start) / (CLOCKS_PER_SEC);
+    }
+    
+    printf("time taken: %lf\n", (double) sum / I);
+    printSet(ans);
+}
+
+void benchmark2(uchar* graph) {
+
+    int *clique = (int *)malloc(N * sizeof(int));
+    int *maxClique = (int *)malloc(N * sizeof(int));
+    int maxSize = 0;
+    double sum = 0;
+
+    for (int i=0; i < N; i++) { clique[i] = 0; maxClique[i] = 0; }
+
+    for (int i=0; i < I; i++) {
+        clock_t start = clock();
+
+        for (int k = 1; k <= N; k++) {
+            generateCombinations(graph, N, clique, k, 0, 0, &maxSize, maxClique);
+        }
+
+        sum += (double) (clock() - start) / (CLOCKS_PER_SEC);
+    }
+    
+    printf("time taken: %lf\n", (double) sum / I);
+
+    printf("Clique Members: ");
+    for (int i=0; i < maxSize; i++) printf("%d ", maxClique[i]);
+    printf("Size: %d\n", maxSize);
+
+}
+
 int main () {
     srand(time(NULL));
     uchar* graph = createGraph(N);
+    toNotDirectedGraph(graph, N);
     printGraph(graph, N);
-    set P = {0, 20};
-    set X = {0, 0};
-    set R = {0, 0};
-    printf("%d \n", findPivot(graph,N));
-    printSet(getNeighbors(graph,N,0));
-    printf("%d \n", popcount(getNeighbors(graph,N,0)));
-    findMaxClique(graph, N, P, X, R);
-    printSet(ans);
+    printf("benchmarking good: ");
+    benchmark(graph, findMaxClique);    
+    printf("benchmarking bad: ");
+    benchmark2(graph);    
 }

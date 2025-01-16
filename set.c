@@ -9,19 +9,33 @@ inline set setIntersection(set A, set B) {
 }
 
 inline uchar getBit(set A, int i) {
-    return 1 & (A.a[i < ULL_SIZE] >> (i-ULL_SIZE*(i >= ULL_SIZE)));
+    if (i < ULL_SIZE) {
+        return 1ULL & (A.a[0] >> i);
+    } else {
+        return 1ULL & (A.a[1] >> (i-ULL_SIZE));
+    }
 }
 
 inline set setBit(set A, int i) {
-    return (set){A.a[0] | ((i >= ULL_SIZE) << (i-ULL_SIZE)), A.a[1] | ((i < ULL_SIZE) << i)};
+    if (i < ULL_SIZE) {
+        A.a[0] |= (1ULL << i);
+    } else {
+        A.a[1] |= (1ULL << (i-ULL_SIZE));
+    }
+    return A;
 }
 
 inline set unsetBit(set A, int i) {
-    return (set){A.a[0] & ~((i >= ULL_SIZE) << (i-ULL_SIZE)), A.a[1] & ~((i < ULL_SIZE) << i)};
+    if (i < ULL_SIZE) {
+        A.a[0] &= ~(1ULL << i);
+    } else {
+        A.a[1] &= ~(1ULL << (i-ULL_SIZE));
+    }
+    return A;
 }
 
 inline uchar isEmpty(set A) {
-    return A.a[0] == 0 && A.a[1] == 0;
+    return A.a[0] == 0ULL && A.a[1] == 0ULL;
 }
 
 uchar popcount(set A) {
@@ -52,25 +66,26 @@ set compareSets (set A, set B) {
 
     uchar countA = popcount(A);
     uchar countB = popcount(B);
-    if (countA != countB) {
-        int f = countA > countB;
-        return (set) {A.a[0]*f + B.a[0]*(1-f), A.a[1]*f + B.a[1]*(1-f)};
+    if (countA > countB) {
+        return A;
+    } else if (countB < countA){
+        return B;
     }
 
-    // shouldnt return {0,0} because A != B from using X in algo
-    set ans = {0,0};
-    int f = 0;
-    int c = 0;
     uchar a, b;
+    set tempA = A;
+    set tempB = B;
 
     // same popcount
-    for (int i=0; !c && i < countA; i++) {
-        a = popFirstBit(&A);
-        b = popFirstBit(&B);
-        f = (a < b);
-        c = (a == b);
-        set ans = {A.a[0]*f + B.a[0]*(1-f), A.a[0]*f + B.a[1]*(1-f)};
+    for (int i=0; i < countA; i++) {
+        a = popFirstBit(&tempA);
+        b = popFirstBit(&tempB);
+        if (a != b) break;
     }
 
-    return ans;
+    if (a < b) {
+        return A;
+    } else {
+        return B;
+    }
 }
