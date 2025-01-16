@@ -37,6 +37,10 @@ set setBit(set A, int i) {
     return (set) {A.a[0] | ((i<ULL_SIZE) << i), A.a[1] | ((i>=ULL_SIZE) << (i-ULL_SIZE))};
 }
 
+set placeBit(set A, int b, int i) {
+    return (set) {A.a[0] | ((i<ULL_SIZE)*b << i), A.a[1] | ((i>=ULL_SIZE)*b << (i-ULL_SIZE))};
+}
+
 set unsetBit(set A, int i) {
     return (set) {A.a[0] & ~((i<ULL_SIZE) << i), A.a[1] & ~((i>=ULL_SIZE) << (i-ULL_SIZE))};
 }
@@ -108,12 +112,26 @@ void toNotDirectedGraph(int graph[N_MAX][N_MAX], int n) {
     }
 }
 
-void printGraph(int graph[N_MAX][N_MAX], int n) {
+void toBitGraph(int graph[N_MAX][N_MAX], set* graphB, int n) {
     for (int i=0; i < n; i++) {
+        set temp = {0,0};
         for (int j=0; j < n; j++) {
-            printf("%d ", graph[i][j]);
+            temp = placeBit(temp, graph[i][j], j);
         }
-        printf("\n");
+        graphB[i] = temp;
+    }
+}
+
+void printSetB(set A) {
+    for (int i=0; i < N_MAX; i++) {
+        printf("%d ", getBit(A, i));
+    }
+    printf("\n");
+}
+
+void printGraph(set graph[N_MAX], int n) {
+    for (int i=0; i < n; i++) {
+        printSetB(graph[i]);
     }
     printf("\n");
 }
@@ -126,7 +144,7 @@ void printSet(set A) {
 }
 
 // returns the node with max neighbors
-int findPivot(int graph[N_MAX][N_MAX], int n, set P) {
+int findPivot(set graph[N_MAX], int n, set P) {
 
     set pcopy = P;
     int max = 0;
@@ -134,27 +152,20 @@ int findPivot(int graph[N_MAX][N_MAX], int n, set P) {
 
     while (!isEmpty(pcopy)) {
         int i = popFirstBit(&pcopy);
-        int temp = 0;
-        for (int j=0; j < n; j++) {
-            temp += graph[i][j];
-        }
+        int temp = popcount(graph[i]);
         if (temp > max) { max=temp; ans=i; }
     }
 
     return ans;
 }
 
-set getNeighbors(int graph[N_MAX][N_MAX], int n, int p) {
-    set ans = {0, 0};
-    for (int i=0; i < n; i++) {
-        if (graph[i][p]) ans = setBit(ans, i);
-    }
-    return ans;
+set getNeighbors(set graph[N_MAX], int p) {
+    return graph[p];
 }
 
 set ans;
     
-void help (int graph[N_MAX][N_MAX], int n, set P, set R, set X) {
+void help (set graph[N_MAX], int n, set P, set R, set X) {
     if (isEmpty(P) && isEmpty(X)) {
         // printSet(R);
         ans = compareSets(ans, R);
@@ -162,14 +173,14 @@ void help (int graph[N_MAX][N_MAX], int n, set P, set R, set X) {
     }    
 
     int pivot = findPivot(graph, n, setUnion(P, X));
-    set np = getNeighbors(graph, n, pivot);
+    set np = getNeighbors(graph, pivot);
 
     set pcopy = setIntersection(P, setNegation(np));
 
     while (!isEmpty(pcopy)) {
         int v = popFirstBit(&pcopy);
 
-        set ni = getNeighbors(graph, n, v);
+        set ni = getNeighbors(graph, v);
 
         help(graph, n, setIntersection(P, ni), setBit(R, v), setIntersection(X, ni));
 
@@ -186,9 +197,13 @@ void findMaxClique(int graph[N_MAX][N_MAX], int n) {
     set R = {0, 0};
 
     toNotDirectedGraph(graph, n);
+    set* graphB = (set*) malloc (N_MAX*sizeof(set));
+    toBitGraph(graph, graphB, n);
 
-    help (graph, n, P, R, X);
+    help (graphB, n, P, R, X);
 
     printSet(ans);
     printf("Size: %d\n", popcount(ans));
+
+    free(graphB);
 }
