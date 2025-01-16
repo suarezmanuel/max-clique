@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <time.h>
 
 #define ull unsigned long long int
 #define N_MAX 100
@@ -17,17 +16,14 @@ typedef struct set {
 
 typedef void (*algo)(int*, int, set, set, set);
 
-static inline set setUnion(set A, set B) {
-    return (set){A.a[0] | B.a[0], A.a[1] | B.a[1]};
-}
+#define setUnion(A, B) \
+    ((set){ (A).a[0] | (B).a[0], (A).a[1] | (B).a[1] })
 
-static inline set setIntersection(set A, set B) {
-    return (set){A.a[0] & B.a[0], A.a[1] & B.a[1]};
-}
+#define setIntersection(A, B) \
+    ((set){ (A).a[0] & (B).a[0], (A).a[1] & (B).a[1] })
 
-static inline set setNegation(set A) {
-    return (set){~A.a[0], ~A.a[1]};
-}
+#define setNegation(A) \
+    ((set){ ~(A).a[0], ~(A).a[1] })
 
 static inline int getBit(set A, int i) {
     if (i < ULL_SIZE) {
@@ -222,6 +218,7 @@ void findMaxClique(int graph[N_MAX][N_MAX], int n) {
 
     help (graphB, n, P, R, X);
 
+    printf("Clique Members: ");
     printSet(ans);
     printf("Size: %d\n", popcount(ans));
 

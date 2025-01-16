@@ -23,8 +23,10 @@ int main() {
     findMaxClique(graph, n);
 
     clock_t end = clock();
+
     double time_spent = (double)(end - begin) / (double)CLOCKS_PER_SEC;
-    printf("Time spent: %.10f\n", time_spent);
+    
+    printf("Time spent: %.10f\n", time_spent/I);
 
     return 0;
 }
