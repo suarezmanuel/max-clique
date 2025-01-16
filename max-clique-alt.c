@@ -17,35 +17,35 @@ typedef struct set {
 
 typedef void (*algo)(int*, int, set, set, set);
 
-set setUnion(set A, set B) {
+static inline set setUnion(set A, set B) {
     return (set){A.a[0] | B.a[0], A.a[1] | B.a[1]};
 }
 
-set setIntersection(set A, set B) {
+static inline set setIntersection(set A, set B) {
     return (set){A.a[0] & B.a[0], A.a[1] & B.a[1]};
 }
 
-set setNegation(set A) {
+static inline set setNegation(set A) {
     return (set){~A.a[0], ~A.a[1]};
 }
 
-int getBit(set A, int i) {
+static inline int getBit(set A, int i) {
     return 1 & ((A.a[0] >> i)*(i<ULL_SIZE) + (A.a[1] >> (i-ULL_SIZE))*(i>=ULL_SIZE));
 }
 
-set setBit(set A, int i) {
+static inline set setBit(set A, int i) {
     return (set) {A.a[0] | ((i<ULL_SIZE) << i), A.a[1] | ((i>=ULL_SIZE) << (i-ULL_SIZE))};
 }
 
-set placeBit(set A, int b, int i) {
+static inline set placeBit(set A, int b, int i) {
     return (set) {A.a[0] | ((i<ULL_SIZE)*b << i), A.a[1] | ((i>=ULL_SIZE)*b << (i-ULL_SIZE))};
 }
 
-set unsetBit(set A, int i) {
+static inline set unsetBit(set A, int i) {
     return (set) {A.a[0] & ~((i<ULL_SIZE) << i), A.a[1] & ~((i>=ULL_SIZE) << (i-ULL_SIZE))};
 }
 
-int isEmpty(set A) {
+static inline int isEmpty(set A) {
     return A.a[0] == 0ULL && A.a[1] == 0ULL;
 }
 
