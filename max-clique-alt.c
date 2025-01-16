@@ -4,9 +4,109 @@
 #include <math.h>
 #include <time.h>
 
-#include "set.h"
+#define uchar unsigned char
+#define ull unsigned long long int
+#define N_MAX 128
+#define ULL_SIZE 64
+#define N 20
+#define I 1000
 
-void generateCombinations(uchar* graph, int n, int *clique, int k, int start, int currentSize, int *maxSize, int *maxClique);
+typedef struct set {
+    // a[0] is lower, a[1] is higher
+    ull a[2];
+} set;
+
+typedef void (*algo)(uchar*, int, set, set, set);
+
+set setUnion(set A, set B) {
+    return (set){A.a[0] | B.a[0], A.a[1] | B.a[1]};
+}
+
+set setIntersection(set A, set B) {
+    return (set){A.a[0] & B.a[0], A.a[1] & B.a[1]};
+}
+
+uchar getBit(set A, int i) {
+    if (i < ULL_SIZE) {
+        return 1ULL & (A.a[0] >> i);
+    } else {
+        return 1ULL & (A.a[1] >> (i-ULL_SIZE));
+    }
+}
+
+set setBit(set A, int i) {
+    if (i < ULL_SIZE) {
+        A.a[0] |= (1ULL << i);
+    } else {
+        A.a[1] |= (1ULL << (i-ULL_SIZE));
+    }
+    return A;
+}
+
+set unsetBit(set A, int i) {
+    if (i < ULL_SIZE) {
+        A.a[0] &= ~(1ULL << i);
+    } else {
+        A.a[1] &= ~(1ULL << (i-ULL_SIZE));
+    }
+    return A;
+}
+
+uchar isEmpty(set A) {
+    return A.a[0] == 0ULL && A.a[1] == 0ULL;
+}
+
+uchar popBit(set* A, int i) {
+    uchar bit = getBit(*A, i);
+    *A = unsetBit(*A, i);
+    return bit;
+}
+
+uchar popcount(set A) {
+    uchar count = 0;
+    for (int i=0; !isEmpty(A) && i < N_MAX; i++) { 
+        count += popBit(&A, i);
+    }
+    return count;
+}
+
+// won't be called if isEmpty(A) is true
+uchar popFirstBit(set* A) {
+    for (int i=0; i < N_MAX; i++) {
+        if (popBit(A, i)) return i;
+    }
+    // shouldn't happen
+    return -1;
+}
+
+// is called if they have the same popcount
+set compareSets (set A, set B) {
+
+    uchar countA = popcount(A);
+    uchar countB = popcount(B);
+    if (countA > countB) {
+        return A;
+    } else if (countA < countB){
+        return B;
+    }
+
+    uchar a, b;
+    set tempA = A;
+    set tempB = B;
+
+    // same popcount
+    for (int i=0; i < countA; i++) {
+        a = popFirstBit(&tempA);
+        b = popFirstBit(&tempB);
+        if (a != b) break;
+    }
+
+    if (a < b) {
+        return A;
+    } else {
+        return B;
+    }
+}
 
 // assume graph has no self loops
 
@@ -179,7 +279,7 @@ void benchmark(uchar* graph, algo f) {
 // }
 
 
-int main () {
+// int main () {
     // srand(time(NULL));
     // test();
     // uchar* graph = createGraph(N);
@@ -190,4 +290,4 @@ int main () {
     // printSet(ans);
     // printf("benchmarking bad: ");
     // benchmark2(graph);    
-}
+// }

@@ -1,7 +1,7 @@
 CC      = gcc
-CFLAGS  = -O3        # compiler flags (for compilation)
+CFLAGS  = -O0        # compiler flags (for compilation)
 LDFLAGS = -lm
-OBJ     = set.o graph.o stupid.o
+OBJ     = set.o graph.o
 EXEC    = main
 
 all: $(EXEC)
