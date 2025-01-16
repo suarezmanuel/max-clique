@@ -29,6 +29,7 @@ uchar* createGraph(int n) {
 
 void toNotDirectedGraph(uchar* graph, int n) {
     for (int i=0; i < n; i++) {
+        graph[i*n + i] = 0;
         for (int j=i+1; j < n; j++) {
             uchar t = graph[i*n + j] || graph[j*n +i];
             graph[i*n + j] = t;
@@ -48,7 +49,7 @@ void printGraph(uchar* graph, int n) {
 }
 
 void printSet(set A) {
-    printf("set size: %d\n", popcount(A));
+    // printf("set size: %d\n", popcount(A));
     // for (int i=N_MAX-1; i >= 0; i--) {
     //     printf("%d", getBit(A, i));
     //     if (i == ULL_SIZE) { printf (" "); }
@@ -83,11 +84,11 @@ set getNeighbors(uchar* graph, int n, int p) {
     return ans;
 }
 
-set ans = {0,0};
+set ans;
     
-void findMaxClique(uchar* graph, int n, set P, set R, set X) {
+void help (uchar* graph, int n, set P, set R, set X) {
     if (isEmpty(P) && isEmpty(X)) {
-        printSet(R);
+        // printSet(R);
         ans = compareSets(ans, R);
         return;
     }
@@ -99,11 +100,25 @@ void findMaxClique(uchar* graph, int n, set P, set R, set X) {
 
         set ni = getNeighbors(graph, n, v);
 
-        findMaxClique(graph, n, setIntersection(P, ni), setBit(R, v), setIntersection(X, ni));
+        help(graph, n, setIntersection(P, ni), setBit(R, v), setIntersection(X, ni));
 
         P = unsetBit(P, v);
         X = setBit(X, v);
     }
+}
+
+void findMaxClique(uchar* graph, int n) {
+    set P = {0, 0};
+    for (int i=0; i < N; i++) P = setBit(P, i);
+    set X = {0, 0};
+    set R = {0, 0};
+
+    toNotDirectedGraph(graph, n);
+
+    help (graph, n, P, R, X);
+
+    printSet(ans);
+    printf("Size: %d\n", popcount(ans));
 }
 
 void benchmark(uchar* graph, algo f) {
@@ -124,42 +139,55 @@ void benchmark(uchar* graph, algo f) {
     printf("time taken: %lf\n", (double) sum / I);
 }
 
-void benchmark2(uchar* graph) {
+// void test () {
 
-    int *clique = (int *)malloc(N * sizeof(int));
-    int *maxClique = (int *)malloc(N * sizeof(int));
-    int maxSize = 0;
-    double sum = 0;
+//     int *clique    = (int *)malloc(N * sizeof(int));
+//     int *maxClique = (int *)malloc(N * sizeof(int));
 
-    for (int i=0; i < N; i++) { clique[i] = 0; maxClique[i] = 0; }
+//     set P = {0, 0};
+//     for (int i=0; i < N; i++) P = setBit(P, i);
+//     set X = {0, 0};
+//     set R = {0, 0};
 
-    for (int i=0; i < I; i++) {
-        maxSize = 0;
-        clock_t start = clock();
+//     int f = 1;
 
-        for (int k = 1; k <= N; k++) {
-            generateCombinations(graph, N, clique, k, 0, 0, &maxSize, maxClique);
-        }
+//     for (int i=0; i < I; i++) {
+        
+//         uchar* graph = createGraph(N);
+//         toNotDirectedGraph(graph, N);
 
-        sum += (double) (clock() - start) / (CLOCKS_PER_SEC);
-    }
-    
-    printf("time taken: %lf\n", (double) sum / I);
+//         for (int i=0; i < N; i++) { clique[i] = 0; maxClique[i] = 0; }
+//         int maxSize = 0;
+//         ans = (set){0,0};
 
-    printf("Clique Members: ");
-    for (int i=0; i < maxSize; i++) printf("%d ", maxClique[i]);
-    printf("Size: %d\n", maxSize);
+//         findMaxClique(graph, N, P, R, X);
 
-}
+//         for (int k = 1; k <= N; k++) {
+//             generateCombinations(graph, N, clique, k, 0, 0, &maxSize, maxClique);
+//         }
+
+//         if (maxSize != popcount(ans)) f = 0;
+
+//         for (int i=0; i < maxSize; i++) {
+//             if (!getBit(ans, maxClique[i])) f = 0;
+//         }
+
+//         free (graph);
+//     }
+
+//     printf ("the functions are: %s\n", (f ? "equal!" : "different :("));
+// }
+
 
 int main () {
-    srand(time(NULL));
-    uchar* graph = createGraph(N);
-    toNotDirectedGraph(graph, N);
-    printGraph(graph, N);
-    benchmark(graph, findMaxClique);    
-    printf("benchmarking good: ");
-    printSet(ans);
-    printf("benchmarking bad: ");
-    benchmark2(graph);    
+    // srand(time(NULL));
+    // test();
+    // uchar* graph = createGraph(N);
+    // toNotDirectedGraph(graph, N);
+    // printGraph(graph, N);
+    // benchmark(graph, findMa\xClique);    
+    // printf("benchmarking good: ");
+    // printSet(ans);
+    // printf("benchmarking bad: ");
+    // benchmark2(graph);    
 }

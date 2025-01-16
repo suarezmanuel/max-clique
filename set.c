@@ -68,7 +68,7 @@ set compareSets (set A, set B) {
     uchar countB = popcount(B);
     if (countA > countB) {
         return A;
-    } else if (countB < countA){
+    } else if (countA < countB){
         return B;
     }
 

@@ -1,5 +1,5 @@
 CC      = gcc
-CFLAGS  = -O0        # compiler flags (for compilation)
+CFLAGS  = -O3        # compiler flags (for compilation)
 LDFLAGS = -lm
 OBJ     = set.o graph.o stupid.o
 EXEC    = main
