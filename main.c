@@ -26,7 +26,7 @@ int main() {
 
     double time_spent = (double)(end - begin) / (double)CLOCKS_PER_SEC;
     
-    printf("Time spent: %.10f\n", time_spent/I);
+    printf("Time spent: %.10f\n", time_spent);
 
     return 0;
 }
