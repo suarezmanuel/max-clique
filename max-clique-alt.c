@@ -25,6 +25,10 @@ set setIntersection(set A, set B) {
     return (set){A.a[0] & B.a[0], A.a[1] & B.a[1]};
 }
 
+set setNegation(set A) {
+    return (set){~A.a[0], ~A.a[1]};
+}
+
 int getBit(set A, int i) {
     return 1 & ((A.a[0] >> i)*(i<ULL_SIZE) + (A.a[1] >> (i-ULL_SIZE))*(i>=ULL_SIZE));
 }
@@ -122,13 +126,17 @@ void printSet(set A) {
 }
 
 // returns the node with max neighbors
-int findPivot(int graph[N_MAX][N_MAX], int n) {
+int findPivot(int graph[N_MAX][N_MAX], int n, set P) {
+
+    set pcopy = P;
     int max = 0;
     int ans = 0;
-    for (int i=0; i < n; i++) {
+
+    while (!isEmpty(pcopy)) {
+        int i = popFirstBit(&pcopy);
         int temp = 0;
         for (int j=0; j < n; j++) {
-            temp += graph[j][i];
+            temp += graph[i][j];
         }
         if (temp > max) { max=temp; ans=i; }
     }
@@ -151,9 +159,12 @@ void help (int graph[N_MAX][N_MAX], int n, set P, set R, set X) {
         // printSet(R);
         ans = compareSets(ans, R);
         return;
-    }
+    }    
 
-    set pcopy = P;
+    int pivot = findPivot(graph, n, setUnion(P, X));
+    set np = getNeighbors(graph, n, pivot);
+
+    set pcopy = setIntersection(P, setNegation(np));
 
     while (!isEmpty(pcopy)) {
         int v = popFirstBit(&pcopy);
@@ -168,9 +179,6 @@ void help (int graph[N_MAX][N_MAX], int n, set P, set R, set X) {
 }
 
 void findMaxClique(int graph[N_MAX][N_MAX], int n) {
-
-    printf("\n");
-    printGraph(graph, n);
 
     set P = {0, 0};
     for (int i=0; i < N; i++) P = setBit(P, i);
