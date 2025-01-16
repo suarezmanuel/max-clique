@@ -30,19 +30,35 @@ static inline set setNegation(set A) {
 }
 
 static inline int getBit(set A, int i) {
-    return 1 & ((A.a[0] >> i)*(i<ULL_SIZE) + (A.a[1] >> (i-ULL_SIZE))*(i>=ULL_SIZE));
+    if (i < ULL_SIZE) {
+       return 1 & (A.a[0] >> i);
+    } else {
+       return 1 & (A.a[1] >> (i-ULL_SIZE));
+    }
 }
 
 static inline set setBit(set A, int i) {
-    return (set) {A.a[0] | ((i<ULL_SIZE) << i), A.a[1] | ((i>=ULL_SIZE) << (i-ULL_SIZE))};
+    if (i < ULL_SIZE) {
+        return (set) {A.a[0] | (1ULL << i), A.a[1]};
+    } else {
+        return (set) {A.a[0], A.a[1] | (1ULL << (i-ULL_SIZE))};
+    }
 }
 
 static inline set placeBit(set A, int b, int i) {
-    return (set) {A.a[0] | ((i<ULL_SIZE)*b << i), A.a[1] | ((i>=ULL_SIZE)*b << (i-ULL_SIZE))};
+    if (i < ULL_SIZE) {
+        return (set) {A.a[0] | (b << i), A.a[1]};
+    } else {
+        return (set) {A.a[0], A.a[1] | (b << (i-ULL_SIZE))};
+    }
 }
 
 static inline set unsetBit(set A, int i) {
-    return (set) {A.a[0] & ~((i<ULL_SIZE) << i), A.a[1] & ~((i>=ULL_SIZE) << (i-ULL_SIZE))};
+    if (i < ULL_SIZE) {
+        return (set) {A.a[0] & ~(1ULL << i), A.a[1]};
+    } else {
+        return (set) {A.a[0], A.a[1] & ~(1ULL << (i-ULL_SIZE))};
+    }
 }
 
 static inline int isEmpty(set A) {
@@ -55,21 +71,25 @@ int popBit(set* A, int i) {
     return bit;
 }
 
-int popcount(set A) {
-    int count = 0;
-    for (int i=0; !isEmpty(A) && i < N_MAX; i++) { 
-        count += popBit(&A, i);
+// won't be called if isEmpty(A) is true
+static inline int popFirstBit(set* A) {
+    if (A->a[0] != 0ULL) {
+        // least-significant set bit in lower word
+        int i = __builtin_ctzll(A->a[0]);   
+        A->a[0] &= ~(1ULL << i);
+        return i;
+    } else if (A->a[1] != 0ULL) {
+        int i = __builtin_ctzll(A->a[1]);
+        A->a[1] &= ~(1ULL << i);
+        return (i + 64);   
+    } else {
+        // no bits set
+        return -1;         
     }
-    return count;
 }
 
-// won't be called if isEmpty(A) is true
-int popFirstBit(set* A) {
-    for (int i=0; i < N_MAX; i++) {
-        if (popBit(A, i)) return i;
-    }
-    // shouldn't happen
-    return -1;
+static inline int popcount(set A) {
+    return __builtin_popcountll(A.a[0]) + __builtin_popcountll(A.a[1]);
 }
 
 // is called if they have the same popcount
@@ -164,7 +184,7 @@ set getNeighbors(set graph[N_MAX], int p) {
 }
 
 set ans;
-    
+   
 void help (set graph[N_MAX], int n, set P, set R, set X) {
     if (isEmpty(P) && isEmpty(X)) {
         // printSet(R);
