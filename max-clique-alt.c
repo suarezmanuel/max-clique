@@ -26,29 +26,15 @@ set setIntersection(set A, set B) {
 }
 
 int getBit(set A, int i) {
-    if (i < ULL_SIZE) {
-        return 1ULL & (A.a[0] >> i);
-    } else {
-        return 1ULL & (A.a[1] >> (i-ULL_SIZE));
-    }
+    return 1 & ((A.a[0] >> i)*(i<ULL_SIZE) + (A.a[1] >> (i-ULL_SIZE))*(i>=ULL_SIZE));
 }
 
 set setBit(set A, int i) {
-    if (i < ULL_SIZE) {
-        A.a[0] |= (1ULL << i);
-    } else {
-        A.a[1] |= (1ULL << (i-ULL_SIZE));
-    }
-    return A;
+    return (set) {A.a[0] | ((i<ULL_SIZE) << i), A.a[1] | ((i>=ULL_SIZE) << (i-ULL_SIZE))};
 }
 
 set unsetBit(set A, int i) {
-    if (i < ULL_SIZE) {
-        A.a[0] &= ~(1ULL << i);
-    } else {
-        A.a[1] &= ~(1ULL << (i-ULL_SIZE));
-    }
-    return A;
+    return (set) {A.a[0] & ~((i<ULL_SIZE) << i), A.a[1] & ~((i>=ULL_SIZE) << (i-ULL_SIZE))};
 }
 
 int isEmpty(set A) {
