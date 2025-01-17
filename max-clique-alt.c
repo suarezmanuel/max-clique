@@ -6,8 +6,6 @@
 #define ull unsigned long long int
 #define N_MAX 100
 #define ULL_SIZE 64
-#define N 20
-#define I 1000
 
 typedef struct set {
     // a[0] is lower, a[1] is higher
@@ -208,7 +206,7 @@ void help (set graph[N_MAX], int n, set P, set R, set X) {
 void findMaxClique(int graph[N_MAX][N_MAX], int n) {
 
     set P = {0, 0};
-    for (int i=0; i < N; i++) P = setBit(P, i);
+    for (int i=0; i < n; i++) P = setBit(P, i);
     set X = {0, 0};
     set R = {0, 0};
 
