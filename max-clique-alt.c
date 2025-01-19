@@ -13,37 +13,14 @@ __uint128_t _0 = 0;
 
 typedef void (*algo)(int*, int, set, set, set);
 
-static inline set setUnion(set a, set b) {
-    return a | b;
-}
-
-static inline set setIntersection(set a, set b) {
-    return a & b;
-}
-
-static inline set setNegation(set a) {
-    return ~a;
-}
-
-static inline int getBit(set a, int i) {
-    return (int)(_1 & (a >> i));
-}
-
-static inline set setBit(set a, int i) {
-    return a | (_1 << i); 
-}
-
-static inline set placeBit(set a, int b, int i) {
-    return a | (((set)b) << i);
-}
-
-static inline set unsetBit(set a, int i) {
-    return a & ~(_1 << i);
-}
-
-static inline int isEmpty(set a) {
-    return a == _0;
-}
+#define setUnion(a, b)         ((a) | (b))
+#define setIntersection(a, b)  ((a) & (b))
+#define setNegation(a)         (~(a))
+#define getBit(a, i)           ((int)(_1 & ((a) >> (i))))
+#define setBit(a, i)           ((a) | (_1 << (i)))
+#define placeBit(a, b, i)      ((a) | (((set)(b)) << (i)))
+#define unsetBit(a, i)         ((a) & ~(_1 << (i)))
+#define isEmpty(a)             ((a) == _0)
 
 int popBit(set* A, int i) {
     int bit = getBit(*A, i);
