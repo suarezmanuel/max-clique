@@ -1,62 +1,48 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include <time.h>
 #include <math.h>
-
-#define ull unsigned long long int
+ 
 #define N_MAX 100
 #define ULL_SIZE 64
 
-typedef struct set {
-    // a[0] is lower, a[1] is higher
-    ull a[2];
-} set;
+typedef __uint128_t set;
+__uint128_t _1 = 1;
+__uint128_t _0 = 0;
 
 typedef void (*algo)(int*, int, set, set, set);
 
-#define setUnion(A, B) \
-    ((set){ (A).a[0] | (B).a[0], (A).a[1] | (B).a[1] })
-
-#define setIntersection(A, B) \
-    ((set){ (A).a[0] & (B).a[0], (A).a[1] & (B).a[1] })
-
-#define setNegation(A) \
-    ((set){ ~(A).a[0], ~(A).a[1] })
-
-static inline int getBit(set A, int i) {
-    if (i < ULL_SIZE) {
-       return 1 & (A.a[0] >> i);
-    } else {
-       return 1 & (A.a[1] >> (i-ULL_SIZE));
-    }
+static inline set setUnion(set a, set b) {
+    return a | b;
 }
 
-static inline set setBit(set A, int i) {
-    if (i < ULL_SIZE) {
-        return (set) {A.a[0] | (1ULL << i), A.a[1]};
-    } else {
-        return (set) {A.a[0], A.a[1] | (1ULL << (i-ULL_SIZE))};
-    }
+static inline set setIntersection(set a, set b) {
+    return a & b;
 }
 
-static inline set placeBit(set A, int b, int i) {
-    if (i < ULL_SIZE) {
-        return (set) {A.a[0] | (b << i), A.a[1]};
-    } else {
-        return (set) {A.a[0], A.a[1] | (b << (i-ULL_SIZE))};
-    }
+static inline set setNegation(set a) {
+    return ~a;
 }
 
-static inline set unsetBit(set A, int i) {
-    if (i < ULL_SIZE) {
-        return (set) {A.a[0] & ~(1ULL << i), A.a[1]};
-    } else {
-        return (set) {A.a[0], A.a[1] & ~(1ULL << (i-ULL_SIZE))};
-    }
+static inline int getBit(set a, int i) {
+    return (int)(_1 & (a >> i));
 }
 
-static inline int isEmpty(set A) {
-    return A.a[0] == 0ULL && A.a[1] == 0ULL;
+static inline set setBit(set a, int i) {
+    return a | (_1 << i); 
+}
+
+static inline set placeBit(set a, int b, int i) {
+    return a | (((set)b) << i);
+}
+
+static inline set unsetBit(set a, int i) {
+    return a & ~(_1 << i);
+}
+
+static inline int isEmpty(set a) {
+    return a == _0;
 }
 
 int popBit(set* A, int i) {
@@ -66,53 +52,51 @@ int popBit(set* A, int i) {
 }
 
 // won't be called if isEmpty(A) is true
-static inline int popFirstBit(set* A) {
-    if (A->a[0] != 0ULL) {
+static inline int popFirstBit(set* a) {
+    uint64_t lower = *a;
+    uint64_t upper = *a >> 64;
+
+    if (lower != 0ULL) {
         // least-significant set bit in lower word
-        int i = __builtin_ctzll(A->a[0]);   
-        A->a[0] &= ~(1ULL << i);
+        int i = __builtin_ctzll(lower);   
+        *a &= ~(_1 << i);
         return i;
-    } else if (A->a[1] != 0ULL) {
-        int i = __builtin_ctzll(A->a[1]);
-        A->a[1] &= ~(1ULL << i);
-        return (i + 64);   
+    } else if (upper != 0) {
+        int i = __builtin_ctzll(upper);
+        *a &= ~(_1 << (i+64));
+        return i + 64;   
     } else {
         // no bits set
-        return -1;         
+        return -1;       
     }
 }
 
-static inline int popcount(set A) {
-    return __builtin_popcountll(A.a[0]) + __builtin_popcountll(A.a[1]);
+static inline int popcount(set a) {
+    return __builtin_popcountll((uint64_t) a) + __builtin_popcountll((uint64_t) (a >> 64));
 }
 
 // is called if they have the same popcount
-set compareSets (set A, set B) {
+set compareSets (set a, set b) {
 
-    int countA = popcount(A);
-    int countB = popcount(B);
-    if (countA > countB) {
-        return A;
-    } else if (countA < countB){
-        return B;
+    int countA = popcount(a);
+    int countB = popcount(b);
+
+    if (countA != countB) {
+        return (countA > countB) ? a : b;
     }
 
-    int a, b;
-    set tempA = A;
-    set tempB = B;
+    int a_bit, b_bit;
+    set tempA = a;
+    set tempB = b;
 
     // same popcount
     for (int i=0; i < countA; i++) {
-        a = popFirstBit(&tempA);
-        b = popFirstBit(&tempB);
-        if (a != b) break;
+        a_bit = popFirstBit(&tempA);
+        b_bit = popFirstBit(&tempB);
+        if (a_bit != b_bit) break;
     }
 
-    if (a < b) {
-        return A;
-    } else {
-        return B;
-    }
+    return (a_bit < b_bit) ? a : b; 
 }
 
 void toNotDirectedGraph(int graph[N_MAX][N_MAX], int n) {
@@ -128,7 +112,7 @@ void toNotDirectedGraph(int graph[N_MAX][N_MAX], int n) {
 
 void toBitGraph(int graph[N_MAX][N_MAX], set* graphB, int n) {
     for (int i=0; i < n; i++) {
-        set temp = {0,0};
+        set temp = 0;
         for (int j=0; j < n; j++) {
             temp = placeBit(temp, graph[i][j], j);
         }
@@ -136,9 +120,9 @@ void toBitGraph(int graph[N_MAX][N_MAX], set* graphB, int n) {
     }
 }
 
-void printSetB(set A) {
+void printSetB(set a) {
     for (int i=0; i < N_MAX; i++) {
-        printf("%d ", getBit(A, i));
+        printf("%d ", getBit(a, i));
     }
     printf("\n");
 }
@@ -150,9 +134,9 @@ void printGraph(set graph[N_MAX], int n) {
     printf("\n");
 }
 
-void printSet(set A) {
+void printSet(set a) {
     for (int i=0; i < N_MAX; i++) {
-        if (getBit(A, i)) printf("%d ", i);
+        if (getBit(a, i)) printf("%d ", i);
     }
     printf("\n");
 }
@@ -205,10 +189,11 @@ void help (set graph[N_MAX], int n, set P, set R, set X) {
 
 void findMaxClique(int graph[N_MAX][N_MAX], int n) {
 
-    set P = {0, 0};
+    set P = _0;
+    set X = _0;
+    set R = _0;
+
     for (int i=0; i < n; i++) P = setBit(P, i);
-    set X = {0, 0};
-    set R = {0, 0};
 
     toNotDirectedGraph(graph, n);
     set* graphB = (set*) malloc (N_MAX*sizeof(set));
